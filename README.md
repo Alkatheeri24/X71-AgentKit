@@ -36,7 +36,24 @@ Provider-neutral LLM/AI usage cost estimation and budget enforcement.
 - hard and warning budget thresholds;
 - no claim that a price is current unless the caller provides a verified catalog.
 
-## Quick start
+## Install now from GitHub
+
+Requires Node.js 22 or newer.
+
+```bash
+npm install -g github:Alkatheeri24/X71-AgentKit
+```
+
+Then run:
+
+```bash
+x71-agentkit --help
+x71-agentkit agentops --command "git push --force origin main"
+x71-agentkit mcp-audit ./mcp.json
+x71-agentkit cost ./usage.json ./pricing.json --budget 5
+```
+
+You can also run directly from a clone:
 
 ```bash
 node src/cli.mjs agentops --command "git push --force origin main"
@@ -45,6 +62,10 @@ node src/cli.mjs cost ./usage.json ./pricing.json --budget 5
 ```
 
 The CLI is fail-closed for malformed input and never executes the command being inspected.
+
+## npm package
+
+The package metadata is prepared as `x71-agentkit` version `0.1.0`. Registry publication is intentionally separated from source publication so npm authentication can use a reviewed trusted-publishing or scoped-token flow rather than exposing a long-lived credential.
 
 ## Design principles
 
@@ -58,9 +79,9 @@ The CLI is fail-closed for malformed input and never executes the command being 
 ## Library usage
 
 ```js
-import { assessCommand } from './src/agentops-guard.mjs';
-import { auditMcpConfig } from './src/mcp-auditor.mjs';
-import { summarizeCosts, evaluateBudget } from './src/ai-cost-guard.mjs';
+import { assessCommand } from 'x71-agentkit/agentops-guard';
+import { auditMcpConfig } from 'x71-agentkit/mcp-auditor';
+import { summarizeCosts, evaluateBudget } from 'x71-agentkit/ai-cost-guard';
 ```
 
 ## Security scope
@@ -74,9 +95,10 @@ See `SECURITY.md` for reporting guidance and known limitations.
 ```bash
 npm test
 npm run check
+npm run pack:check
 ```
 
-Requires Node.js 22 or newer and has no runtime dependencies in v0.1.
+The v0.1 line has no runtime dependencies.
 
 ## License
 
