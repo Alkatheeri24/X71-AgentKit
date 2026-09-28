@@ -1,0 +1,44 @@
+name: Publish X71 AgentKit to npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Choose dry-run until npm trusted publishing is configured"
+        required: true
+        default: "dry-run"
+        type: choice
+        options:
+          - dry-run
+          - publish
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: x71-agentkit-npm-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Verify source
+        run: |
+          npm run check
+          npm test
+          npm run pack:check
+      - name: Dry run only
+        if: inputs.mode == 'dry-run'
+        run: npm publish --dry-run --access public
+      - name: Publish with npm trusted publishing
+        if: inputs.mode == 'publish'
+        run: npm publish --access public
