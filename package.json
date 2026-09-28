@@ -1,0 +1,32 @@
+{
+  "name": "@x71/agentkit",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "Local-first safety, MCP auditing, and AI cost controls for agentic development workflows.",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "x71-agentkit": "./src/cli.mjs"
+  },
+  "exports": {
+    "./agentops-guard": "./src/agentops-guard.mjs",
+    "./mcp-auditor": "./src/mcp-auditor.mjs",
+    "./ai-cost-guard": "./src/ai-cost-guard.mjs"
+  },
+  "scripts": {
+    "check": "node --check src/agentops-guard.mjs && node --check src/mcp-auditor.mjs && node --check src/ai-cost-guard.mjs && node --check src/cli.mjs",
+    "test": "node --test"
+  },
+  "keywords": [
+    "ai-agents",
+    "mcp",
+    "security",
+    "agentops",
+    "llm",
+    "cost-control",
+    "git-safety"
+  ]
+}
