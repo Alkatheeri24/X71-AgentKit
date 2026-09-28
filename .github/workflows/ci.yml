@@ -28,3 +28,7 @@ jobs:
         run: npm test
       - name: Package dry run
         run: npm run pack:check
+      - name: Install and CLI smoke test
+        run: |
+          npm install -g .
+          x71-agentkit --help
