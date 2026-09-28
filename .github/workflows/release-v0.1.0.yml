@@ -1,0 +1,42 @@
+name: X71 AgentKit v0.1.0 Release
+
+on:
+  workflow_run:
+    workflows: ["X71 AgentKit CI"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: x71-agentkit-v0.1.0-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: >-
+      ${{ github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Verify release version
+        shell: bash
+        run: |
+          node -e "const p=require('./package.json'); if (p.version !== '0.1.0') process.exit(1)"
+      - name: Create GitHub release if absent
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v0.1.0 >/dev/null 2>&1; then
+            echo "v0.1.0 already exists; nothing to do."
+            exit 0
+          fi
+          gh release create v0.1.0 \
+            --target "${{ github.event.workflow_run.head_sha }}" \
+            --title "X71 AgentKit v0.1.0" \
+            --notes-file CHANGELOG.md
