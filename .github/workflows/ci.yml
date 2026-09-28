@@ -26,3 +26,5 @@ jobs:
         run: npm run check
       - name: Unit tests
         run: npm test
+      - name: Package dry run
+        run: npm run pack:check
