@@ -79,7 +79,7 @@ The CLI is fail-closed for malformed input and never executes the command being 
 
 ## npm package
 
-The npm package name is `@x71-agentkit/agentkit`. Version `0.1.1` is the first release prepared for the `@x71-agentkit` npm organization scope. Public registry publication remains separated from source publication until npm authentication/trusted publishing is configured.
+The npm package name is `@x71-agentkit/agentkit`. Version `0.1.2` normalizes the CLI `bin` path for current npm publishing behavior while keeping the package API and organization scope unchanged. Public registry publication is performed only after the package dry-run, tests, and CLI smoke checks pass.
 
 ## Design principles
 
