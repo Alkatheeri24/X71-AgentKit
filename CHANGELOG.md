@@ -2,6 +2,18 @@
 
 All notable changes to X71 AgentKit are documented here.
 
+## [0.1.1] - 2026-09-29
+
+### Changed
+
+- Moved the npm package identity to the owned public organization scope `@x71-agentkit/agentkit`.
+- Updated install, npx, and library import examples for the final npm scope.
+- Kept GitHub distribution and the Apache-2.0 source license unchanged.
+
+### Verification
+
+- CI must pass syntax checks, unit tests, package dry-run, global install, and CLI startup before npm publication.
+
 ## [0.1.0] - 2026-09-29
 
 ### Added
