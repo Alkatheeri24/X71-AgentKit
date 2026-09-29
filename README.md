@@ -1,8 +1,17 @@
 # X71 AgentKit
 
+[![npm version](https://img.shields.io/npm/v/%40x71-agentkit%2Fagentkit)](https://www.npmjs.com/package/@x71-agentkit/agentkit)
+[![npm downloads](https://img.shields.io/npm/dm/%40x71-agentkit%2Fagentkit)](https://www.npmjs.com/package/@x71-agentkit/agentkit)
+[![CI](https://github.com/Alkatheeri24/X71-AgentKit/actions/workflows/ci.yml/badge.svg)](https://github.com/Alkatheeri24/X71-AgentKit/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+
 **A local-first safety gate for AI coding agents, MCP configurations, and AI cost controls.**
 
 Use it before Claude Code, Codex, Cursor, CI, or a custom agent executes something risky.
+
+> **v0.2.0 launch:** project-wide `scan`, fast `doctor` readiness checks, reusable GitHub Action, MCP auditing, command safety, and provider-neutral AI cost controls — all designed for local-first pre-flight use.
+>
+> [GitHub Release](https://github.com/Alkatheeri24/X71-AgentKit/releases/tag/v0.2.0) · [npm package](https://www.npmjs.com/package/@x71-agentkit/agentkit) · [Integration guide](docs/INTEGRATIONS.md)
 
 - blocks clearly destructive command patterns;
 - sends risky Git operations to review;
@@ -98,7 +107,7 @@ Pricing is supplied by the caller. Unknown pricing remains unknown instead of be
 
 ## GitHub Action
 
-The repository includes a reusable composite action. After the `v0.2.0` release tag is available:
+The repository includes a reusable composite action:
 
 ```yaml
 name: Agent safety
@@ -162,6 +171,10 @@ AgentKit is a defensive control layer. It does not replace sandboxing, operating
 
 See [`SECURITY.md`](SECURITY.md) for reporting guidance and known limitations.
 
+## Community
+
+If you integrate X71 AgentKit with Claude Code, Codex, Cursor, MCP, CI, or a custom agent runtime, open an issue with the integration pattern, a reproducible example, or feedback. Real-world edge cases are especially useful for improving the safety rules without weakening legitimate developer workflows.
+
 ## Development
 
 ```bash
@@ -170,7 +183,7 @@ npm run check
 npm run pack:check
 ```
 
-AgentKit has no runtime dependencies in the v0.2 release candidate.
+AgentKit has no runtime dependencies in v0.2.0.
 
 ## License
 
