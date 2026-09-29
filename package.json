@@ -1,9 +1,9 @@
 {
   "name": "@x71-agentkit/agentkit",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "private": false,
   "type": "module",
-  "description": "Local-first safety, MCP auditing, and AI cost controls for agentic development workflows.",
+  "description": "Local-first safety gates, MCP auditing, project scanning, and AI cost controls for agentic development workflows.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -22,7 +22,8 @@
   "exports": {
     "./agentops-guard": "./src/agentops-guard.mjs",
     "./mcp-auditor": "./src/mcp-auditor.mjs",
-    "./ai-cost-guard": "./src/ai-cost-guard.mjs"
+    "./ai-cost-guard": "./src/ai-cost-guard.mjs",
+    "./project-scanner": "./src/project-scanner.mjs"
   },
   "files": [
     "src/",
@@ -34,17 +35,21 @@
     "access": "public"
   },
   "scripts": {
-    "check": "node --check src/agentops-guard.mjs && node --check src/mcp-auditor.mjs && node --check src/ai-cost-guard.mjs && node --check src/cli.mjs",
+    "check": "node --check src/agentops-guard.mjs && node --check src/mcp-auditor.mjs && node --check src/ai-cost-guard.mjs && node --check src/project-scanner.mjs && node --check src/cli.mjs",
     "test": "node --test",
     "pack:check": "npm pack --dry-run"
   },
   "keywords": [
     "ai-agents",
+    "agent-security",
     "mcp",
     "security",
     "agentops",
     "llm",
     "cost-control",
-    "git-safety"
+    "git-safety",
+    "claude-code",
+    "codex",
+    "cursor"
   ]
 }
