@@ -2,6 +2,17 @@
 
 All notable changes to X71 AgentKit are documented here.
 
+## [0.1.2] - 2026-09-29
+
+### Fixed
+
+- Normalized the npm `bin` target from `./src/cli.mjs` to `src/cli.mjs` so current npm publish normalization does not remove or rewrite the `x71-agentkit` CLI entry.
+- Kept the CLI implementation and package scope unchanged.
+
+### Verification
+
+- CI must pass syntax checks, unit tests, package dry-run, global install, and CLI startup before npm publication.
+
 ## [0.1.1] - 2026-09-29
 
 ### Changed
