@@ -4,13 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "Choose dry-run until npm trusted publishing is configured"
+        description: "Choose dry-run or publish"
         required: true
         default: "dry-run"
         type: choice
         options:
           - dry-run
           - publish
+  workflow_run:
+    workflows: ["X71 AgentKit CI"]
+    types: [completed]
 
 permissions:
   contents: read
@@ -22,23 +25,75 @@ concurrency:
 
 jobs:
   publish:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      ${{
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+        (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
+
       - name: Verify source
         run: |
           npm run check
           npm test
           npm run pack:check
+
+      - name: Read package coordinates
+        id: package
+        shell: bash
+        run: |
+          NAME="$(node -p "require('./package.json').name")"
+          VERSION="$(node -p "require('./package.json').version")"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check npm registry
+        id: registry
+        shell: bash
+        env:
+          PACKAGE_NAME: ${{ steps.package.outputs.name }}
+          PACKAGE_VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          set +e
+          OUTPUT="$(npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version --json 2>&1)"
+          STATUS=$?
+          set -e
+
+          if [ "$STATUS" -eq 0 ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "${PACKAGE_NAME}@${PACKAGE_VERSION} already exists on npm."
+          elif printf '%s' "$OUTPUT" | grep -qE 'E404|is not in this registry'; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "${PACKAGE_NAME}@${PACKAGE_VERSION} is not published yet."
+          else
+            printf '%s\n' "$OUTPUT" >&2
+            exit "$STATUS"
+          fi
+
       - name: Dry run only
-        if: inputs.mode == 'dry-run'
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'dry-run'
         run: npm publish --dry-run --access public
+
       - name: Publish with npm trusted publishing
-        if: inputs.mode == 'publish'
-        run: npm publish --access public
+        if: >-
+          ${{
+            steps.registry.outputs.exists == 'false' &&
+            (
+              github.event_name == 'workflow_run' ||
+              (github.event_name == 'workflow_dispatch' && inputs.mode == 'publish')
+            )
+          }}
+        run: npm publish --access public --provenance
+
+      - name: Already published
+        if: steps.registry.outputs.exists == 'true'
+        run: echo "Nothing to publish; this immutable npm version already exists."
