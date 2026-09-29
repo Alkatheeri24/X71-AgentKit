@@ -79,3 +79,10 @@ jobs:
           sha256sum artifacts/readiness/x71-agentkit.tar.gz > artifacts/readiness/x71-agentkit.tar.gz.sha256
           printf 'commit=%s\ntree=%s\n' "$(git rev-parse HEAD)" "$(git rev-parse HEAD^{tree})" > artifacts/readiness/provenance.txt
           sha256sum -c artifacts/readiness/x71-agentkit.tar.gz.sha256
+      - name: Preserve release evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: x71-agentkit-readiness-${{ github.sha }}
+          path: artifacts/readiness/
+          if-no-files-found: error
+          retention-days: 30
