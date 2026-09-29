@@ -1,94 +1,142 @@
 # X71 AgentKit
 
-Open-source, local-first utilities for safer AI-assisted software development.
+**A local-first safety gate for AI coding agents, MCP configurations, and AI cost controls.**
 
-X71 AgentKit is intentionally small and provider-neutral. It does not require an X71 backend, does not upload source code, and does not execute external network calls by default.
-
-## Products
-
-### 1. AgentOps Guard
-
-Pre-flight safety checks for terminal and Git actions before an AI agent executes them.
+Use it before Claude Code, Codex, Cursor, CI, or a custom agent executes something risky.
 
 - blocks clearly destructive command patterns;
-- requires review for risky Git operations;
-- detects likely secrets without returning their raw values;
-- returns structured JSON suitable for Claude Code, Codex, Cursor, OpenHands, Aider, CI, or custom agents.
+- sends risky Git operations to review;
+- detects secret-like material without echoing raw values;
+- statically audits MCP configuration without launching servers;
+- scans a project with `doctor` and `scan`;
+- estimates AI cost from caller-supplied pricing instead of inventing prices;
+- requires no X71 backend and performs no network request by default.
 
-### 2. MCP Auditor
-
-Static security audit for Model Context Protocol (MCP) configuration.
-
-- insecure HTTP endpoint detection;
-- shell-wrapper and arbitrary command execution warnings;
-- secret-like environment value detection;
-- wildcard tool access warnings;
-- risky package bootstrap patterns such as unattended `npx -y` execution;
-- no server execution during audit.
-
-### 3. AI Cost Guard
-
-Provider-neutral LLM/AI usage cost estimation and budget enforcement.
-
-- user-supplied pricing catalog;
-- token-based call estimates;
-- coverage reporting when pricing is incomplete;
-- hard and warning budget thresholds;
-- no claim that a price is current unless the caller provides a verified catalog.
-
-## Install
+## Protect a project in 60 seconds
 
 Requires Node.js 22 or newer.
 
-### From npm
-
 ```bash
 npm install -g @x71-agentkit/agentkit
-```
-
-Or run without a global install:
-
-```bash
-npx @x71-agentkit/agentkit --help
-```
-
-### From GitHub
-
-```bash
-npm install -g github:Alkatheeri24/X71-AgentKit
-```
-
-Then run:
-
-```bash
 x71-agentkit --help
+```
+
+Check a proposed agent command:
+
+```bash
 x71-agentkit agentops --command "git push --force origin main"
+```
+
+Run a project-wide safety scan:
+
+```bash
+x71-agentkit scan . --format markdown
+```
+
+Run a fast readiness check:
+
+```bash
+x71-agentkit doctor . --format markdown
+```
+
+## What it protects
+
+### AgentOps Guard
+
+Pre-flight safety checks for terminal and Git actions before an AI agent executes them.
+
+```bash
+x71-agentkit agentops --command "sudo rm -rf /"
+```
+
+The guard returns structured `ALLOW`, `REVIEW`, or `BLOCK` evidence and **never executes the command being inspected**.
+
+### Project Safety Scan
+
+`scan` performs a bounded, local static scan of the project. It checks:
+
+- secret-like material without returning captured values;
+- risky `package.json` scripts;
+- MCP JSON configurations;
+- common agent-development safety signals.
+
+```bash
+x71-agentkit scan . --format markdown --fail-on review
+```
+
+The reported Safety Score is a transparent **heuristic for triage**, not a security guarantee.
+
+### Doctor
+
+`doctor` combines environment readiness with the project scan:
+
+```bash
+x71-agentkit doctor . --format markdown
+```
+
+This makes it easy to produce a short, shareable pre-flight report before giving an AI agent broad tool access.
+
+### MCP Auditor
+
+Static security audit for Model Context Protocol configuration:
+
+```bash
 x71-agentkit mcp-audit ./mcp.json
+```
+
+It detects insecure transport, shell wrappers, arbitrary shell command mode, inline secret-like values, wildcard tool access, unattended `npx -y`, and explicitly destructive capabilities. It does not start MCP servers or perform network requests.
+
+### AI Cost Guard
+
+Provider-neutral token-cost estimation and budget enforcement:
+
+```bash
 x71-agentkit cost ./usage.json ./pricing.json --budget 5
 ```
 
-You can also run directly from a clone:
+Pricing is supplied by the caller. Unknown pricing remains unknown instead of being guessed.
 
-```bash
-node src/cli.mjs agentops --command "git push --force origin main"
-node src/cli.mjs mcp-audit ./mcp.json
-node src/cli.mjs cost ./usage.json ./pricing.json --budget 5
+## GitHub Action
+
+The repository includes a reusable composite action. After the `v0.2.0` release tag is available:
+
+```yaml
+name: Agent safety
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  x71-agentkit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Alkatheeri24/X71-AgentKit@v0.2.0
+        with:
+          path: .
+          fail-on: review
 ```
 
-The CLI is fail-closed for malformed input and never executes the command being inspected.
+For higher-assurance environments, pin the action to a full commit SHA.
 
-## npm package
+## Agent integrations
 
-The npm package name is `@x71-agentkit/agentkit`. Version `0.1.2` normalizes the CLI `bin` path for current npm publishing behavior while keeping the package API and organization scope unchanged. Public registry publication is performed only after the package dry-run, tests, and CLI smoke checks pass.
+The same pre-flight pattern works with Claude Code, Codex, Cursor, OpenHands, Aider, CI, and custom agent runtimes:
 
-## Design principles
+```text
+AI agent
+   ↓
+X71 AgentKit
+   ↓
+ALLOW / REVIEW / BLOCK
+   ↓
+actual tool execution
+```
 
-- **Local first:** input stays on the machine unless the integrating application chooses otherwise.
-- **No secret echo:** findings identify secret categories, never return captured secret values.
-- **Fail closed:** malformed security-critical input returns an error or review decision.
-- **Provider neutral:** no dependency on a specific model vendor or agent framework.
-- **Evidence over claims:** cost estimates expose pricing coverage and data provenance supplied by the caller.
-- **Human authority:** a `PASS` means the implemented checks passed; it is not a guarantee that software is secure or safe to merge.
+See [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) for integration patterns.
 
 ## Library usage
 
@@ -96,13 +144,23 @@ The npm package name is `@x71-agentkit/agentkit`. Version `0.1.2` normalizes the
 import { assessCommand } from '@x71-agentkit/agentkit/agentops-guard';
 import { auditMcpConfig } from '@x71-agentkit/agentkit/mcp-auditor';
 import { summarizeCosts, evaluateBudget } from '@x71-agentkit/agentkit/ai-cost-guard';
+import { scanProject, doctorProject } from '@x71-agentkit/agentkit/project-scanner';
 ```
+
+## Design principles
+
+- **Local first:** input stays on the machine unless the integrating application chooses otherwise.
+- **No secret echo:** findings identify secret categories, never return captured secret values.
+- **Fail closed:** malformed security-critical input returns an error, block, or review outcome.
+- **Provider neutral:** no dependency on a specific model vendor or agent framework.
+- **Evidence over claims:** cost and safety outputs expose what was actually checked.
+- **Human authority:** `PASS` means the implemented checks passed; it is not proof that software is secure or safe to merge.
 
 ## Security scope
 
 AgentKit is a defensive control layer. It does not replace sandboxing, operating-system permissions, repository branch protection, secret managers, dependency scanners, SAST/DAST, or human review.
 
-See `SECURITY.md` for reporting guidance and known limitations.
+See [`SECURITY.md`](SECURITY.md) for reporting guidance and known limitations.
 
 ## Development
 
@@ -112,7 +170,7 @@ npm run check
 npm run pack:check
 ```
 
-The v0.1 line has no runtime dependencies.
+AgentKit has no runtime dependencies in the v0.2 release candidate.
 
 ## License
 

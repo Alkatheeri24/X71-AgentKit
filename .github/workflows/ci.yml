@@ -16,7 +16,7 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,9 +26,19 @@ jobs:
         run: npm run check
       - name: Unit tests
         run: npm test
+      - name: Doctor and scanner smoke tests
+        run: |
+          node src/cli.mjs doctor . --format markdown --fail-on never
+          node src/cli.mjs scan . --format markdown --fail-on never
       - name: Package dry run
         run: npm run pack:check
       - name: Install and CLI smoke test
         run: |
           npm install -g .
           x71-agentkit --help
+          x71-agentkit doctor . --format json --fail-on never
+      - name: Reusable action smoke test
+        uses: ./
+        with:
+          path: .
+          fail-on: never

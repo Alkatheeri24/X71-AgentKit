@@ -1,0 +1,33 @@
+name: X71 AgentKit Safety Scan
+description: "Local-first pre-flight scan for AI-agent, MCP, secret-like, and risky project configuration findings."
+author: X71 AgentKit
+
+branding:
+  icon: shield
+  color: blue
+
+inputs:
+  path:
+    description: "Project path to scan, relative to the caller workspace."
+    required: false
+    default: .
+  fail-on:
+    description: "Exit non-zero at this threshold: never, warn, review, or block."
+    required: false
+    default: review
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js 22
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      with:
+        node-version: '22'
+    - name: Run X71 AgentKit safety scan
+      shell: bash
+      env:
+        X71_SCAN_PATH: ${{ inputs.path }}
+        X71_FAIL_ON: ${{ inputs.fail-on }}
+      run: |
+        set -o pipefail
+        node "$GITHUB_ACTION_PATH/src/cli.mjs" scan "$X71_SCAN_PATH" --format markdown --fail-on "$X71_FAIL_ON" | tee -a "$GITHUB_STEP_SUMMARY"
