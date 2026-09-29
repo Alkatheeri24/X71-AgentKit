@@ -11,6 +11,10 @@ function fixture(t) {
   return root;
 }
 
+function fakeSecret() {
+  return ['sk-', 'abcdefghijklmnopqrstuv123456789'].join('');
+}
+
 test('scanProject passes a minimal clean project', (t) => {
   const root = fixture(t);
   fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({
@@ -28,7 +32,7 @@ test('scanProject passes a minimal clean project', (t) => {
 
 test('scanProject reports secret metadata without returning the secret value', (t) => {
   const root = fixture(t);
-  const secret = 'sk-abcdefghijklmnopqrstuv123456789';
+  const secret = fakeSecret();
   fs.writeFileSync(path.join(root, '.env'), `OPENAI_API_KEY=${secret}\n`);
 
   const report = scanProject(root);
@@ -66,7 +70,7 @@ test('scanProject audits MCP config statically and blocks shell command mode', (
 test('scanProject ignores dependency directories', (t) => {
   const root = fixture(t);
   fs.mkdirSync(path.join(root, 'node_modules'), { recursive: true });
-  fs.writeFileSync(path.join(root, 'node_modules', 'bad.js'), 'const token = "sk-abcdefghijklmnopqrstuv123456789";\n');
+  fs.writeFileSync(path.join(root, 'node_modules', 'bad.js'), `const token = "${fakeSecret()}";\n`);
   fs.writeFileSync(path.join(root, 'index.js'), 'console.log("safe");\n');
 
   const report = scanProject(root);
