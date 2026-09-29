@@ -17,7 +17,7 @@ test('AgentOps Guard requires review for force push', () => {
 });
 
 test('secret scanner reports metadata without returning the secret', () => {
-  const secret = 'sk-abcdefghijklmnopqrstuv123456789';
+  const secret = ['sk-', 'abcdefghijklmnopqrstuv123456789'].join('');
   const findings = scanTextForSecrets(`OPENAI_API_KEY=${secret}`);
   assert.ok(findings.length >= 1);
   assert.equal(JSON.stringify(findings).includes(secret), false);
