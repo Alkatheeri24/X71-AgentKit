@@ -36,9 +36,23 @@ Provider-neutral LLM/AI usage cost estimation and budget enforcement.
 - hard and warning budget thresholds;
 - no claim that a price is current unless the caller provides a verified catalog.
 
-## Install now from GitHub
+## Install
 
 Requires Node.js 22 or newer.
+
+### From npm
+
+```bash
+npm install -g @x71-agentkit/agentkit
+```
+
+Or run without a global install:
+
+```bash
+npx @x71-agentkit/agentkit --help
+```
+
+### From GitHub
 
 ```bash
 npm install -g github:Alkatheeri24/X71-AgentKit
@@ -65,7 +79,7 @@ The CLI is fail-closed for malformed input and never executes the command being 
 
 ## npm package
 
-The package metadata is prepared as `x71-agentkit` version `0.1.0`. Registry publication is intentionally separated from source publication so npm authentication can use a reviewed trusted-publishing or scoped-token flow rather than exposing a long-lived credential.
+The npm package name is `@x71-agentkit/agentkit`. Version `0.1.1` is the first release prepared for the `@x71-agentkit` npm organization scope. Public registry publication remains separated from source publication until npm authentication/trusted publishing is configured.
 
 ## Design principles
 
@@ -79,9 +93,9 @@ The package metadata is prepared as `x71-agentkit` version `0.1.0`. Registry pub
 ## Library usage
 
 ```js
-import { assessCommand } from 'x71-agentkit/agentops-guard';
-import { auditMcpConfig } from 'x71-agentkit/mcp-auditor';
-import { summarizeCosts, evaluateBudget } from 'x71-agentkit/ai-cost-guard';
+import { assessCommand } from '@x71-agentkit/agentkit/agentops-guard';
+import { auditMcpConfig } from '@x71-agentkit/agentkit/mcp-auditor';
+import { summarizeCosts, evaluateBudget } from '@x71-agentkit/agentkit/ai-cost-guard';
 ```
 
 ## Security scope
