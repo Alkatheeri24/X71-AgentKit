@@ -16,9 +16,12 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
@@ -26,9 +29,44 @@ jobs:
         run: npm run check
       - name: Unit tests
         run: npm test
+      - name: Dependency vulnerability gate
+        run: npm audit --audit-level=high
+      - name: Full-history secret guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          findings="$(git rev-list --all | while read -r commit; do git grep -I -n -E '-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{30,}' "$commit" -- . ':!test' ':!tests' || true; done)"
+          if [ -n "$findings" ]; then
+            echo 'High-confidence secret material found in Git history.' >&2
+            echo "$findings" | sed -E 's/(AKIA|gh[pousr]_)[A-Za-z0-9_]+/\1[REDACTED]/g' >&2
+            exit 1
+          fi
+      - name: License and privacy boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f LICENSE
+          grep -q '"license": "Apache-2.0"' package.json
+          if grep -RInE 'https?://|fetch\(|WebSocket|node:(http|https|net)|from ["'"'](http|https|net)["'"']' src --include='*.mjs'; then
+            echo 'Network-capable source surface requires explicit privacy review.' >&2
+            exit 1
+          fi
       - name: Package dry run
         run: npm run pack:check
       - name: Install and CLI smoke test
         run: |
           npm install -g .
           x71-agentkit --help
+      - name: SBOM and reproducible source RC
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/readiness /tmp/x71-rc-a /tmp/x71-rc-b
+          node -e 'const p=require("./package.json"); const bom={bomFormat:"CycloneDX",specVersion:"1.5",version:1,metadata:{component:{type:"application",name:p.name,version:p.version,licenses:[{license:{id:p.license}}]}},components:[]}; process.stdout.write(JSON.stringify(bom,null,2)+"\n")' > artifacts/readiness/sbom.cdx.json
+          git archive --format=tar HEAD | gzip -n > /tmp/x71-rc-a/x71-agentkit.tar.gz
+          git archive --format=tar HEAD | gzip -n > /tmp/x71-rc-b/x71-agentkit.tar.gz
+          cmp /tmp/x71-rc-a/x71-agentkit.tar.gz /tmp/x71-rc-b/x71-agentkit.tar.gz
+          cp /tmp/x71-rc-a/x71-agentkit.tar.gz artifacts/readiness/
+          sha256sum artifacts/readiness/x71-agentkit.tar.gz > artifacts/readiness/x71-agentkit.tar.gz.sha256
+          printf 'commit=%s\ntree=%s\n' "$(git rev-parse HEAD)" "$(git rev-parse HEAD^{tree})" > artifacts/readiness/provenance.txt
+          sha256sum -c artifacts/readiness/x71-agentkit.tar.gz.sha256
