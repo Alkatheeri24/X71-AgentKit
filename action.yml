@@ -1,5 +1,5 @@
 name: X71 AgentKit Safety Scan
-description: Local-first pre-flight scan for AI-agent, MCP, secret-like, and risky project configuration findings.
+description: "Local-first pre-flight scan for AI-agent, MCP, secret-like, and risky project configuration findings."
 author: X71 AgentKit
 
 branding:
@@ -8,11 +8,11 @@ branding:
 
 inputs:
   path:
-    description: Project path to scan, relative to the caller workspace.
+    description: "Project path to scan, relative to the caller workspace."
     required: false
     default: .
   fail-on:
-    description: Exit non-zero at this threshold: never, warn, review, or block.
+    description: "Exit non-zero at this threshold: never, warn, review, or block."
     required: false
     default: review
 
